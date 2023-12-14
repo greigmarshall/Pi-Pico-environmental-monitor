@@ -34,14 +34,24 @@ i2c0_sda = Pin(8)
 i2c0_scl = Pin(9)
 i2c0 = I2C(0, sda=i2c0_sda, scl=i2c0_scl)
 
+# Initialise DHT20
 dht20 = DHT20(0x38, i2c0)
+
+# Initialize analog input pin
+adc_pin = machine.Pin(26, machine.Pin.IN)
 
 while True:
     try:
         measurements = dht20.measurements
+        # Read analog value from ADC pin
+        adc = machine.ADC(26)
+        val = adc.read_u16()
+        mapped_val = int(val * 1023 / 65535)
+        
         data = {
             "temperature": measurements['t'],
-            "humidity": measurements['rh']
+            "humidity": measurements['rh'],
+            "illuminance": mapped_val
         }
         payload = json.dumps(data)
         print(payload)
